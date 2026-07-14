@@ -11,10 +11,6 @@
   },
   "app": {
     "withGlobalTauri": true,
-    "trayIcon": {
-      "iconPath": "icons/icon.png",
-      "iconAsTemplate": true
-    },
     "windows": [
       {
         "label": "main",
@@ -32,9 +28,18 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM2QjIxNzQzNzdFODY4MDAKUldRQWFPaDNReGV5TnNtOTkwbkQ1KzIvK2dyeXBPMXVycE9xZG83a2gybDZkWHQ0MnY1UFVsUS8K",
+      "endpoints": [
+        "https://github.com/AleenaTahir1/Pixnib/releases/latest/download/latest.json"
+      ]
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/16x16.png",
       "icons/24x24.png",

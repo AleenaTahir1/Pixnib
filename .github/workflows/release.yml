@@ -110,6 +110,7 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
           tagName: v__VERSION__
           releaseName: 'Pixnib v__VERSION__'
@@ -128,5 +129,6 @@ jobs:
             - Copy colors as HEX, RGB, or HSL
             - Persistent color history
             - Clean dark theme UI
+            - Auto-updates — Pixnib politely offers new versions as they ship
           releaseDraft: false
           prerelease: false

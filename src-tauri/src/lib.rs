@@ -165,6 +165,8 @@ fn pick_color_now(app: tauri::AppHandle) -> Result<ColorInfo, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(
@@ -272,6 +274,7 @@ pub fn run() {
             let menu = Menu::with_items(app, &[&pick_item, &show_item, &quit_item])?;
 
             let _tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().expect("bundle icon missing").clone())
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .tooltip(format!(

@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { ColorHistory } from "./components/ColorHistory";
+import { UpdatePrompt } from "./components/UpdatePrompt";
 import { useColorHistory } from "./hooks/useColorHistory";
 import { ColorInfo, ColorEntry, ColorFormat } from "./types/color";
 import { formatColor, getContrastColor } from "./utils/colorConvert";
@@ -216,6 +217,9 @@ function App() {
           Copied to clipboard
         </div>
       )}
+
+      {/* Update prompt */}
+      <UpdatePrompt />
     </div>
   );
 }

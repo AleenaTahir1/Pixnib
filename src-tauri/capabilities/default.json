@@ -22,6 +22,8 @@
     "global-shortcut:allow-unregister",
     "clipboard-manager:default",
     "clipboard-manager:allow-write-text",
+    "updater:default",
+    "process:default",
     "fs:default",
     "fs:allow-app-read",
     "fs:allow-app-write",
