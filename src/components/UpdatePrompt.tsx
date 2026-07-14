@@ -10,7 +10,7 @@ export function UpdatePrompt() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Give the app a moment to settle before phoning home
+    // Brief delay so the window finishes its first paint, then check right away
     const timer = setTimeout(async () => {
       try {
         const found = await check();
@@ -20,7 +20,7 @@ export function UpdatePrompt() {
       } catch {
         // No release manifest yet or offline — stay quiet
       }
-    }, 3000);
+    }, 600);
     return () => clearTimeout(timer);
   }, []);
 
