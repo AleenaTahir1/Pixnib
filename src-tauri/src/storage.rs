@@ -1,10 +1,11 @@
-use crate::ColorEntry;
+use crate::{ColorEntry, Palette};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tauri::Manager;
 
 const HISTORY_FILE: &str = "color_history.json";
 const SETTINGS_FILE: &str = "settings.json";
+const PALETTES_FILE: &str = "palettes.json";
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AppSettings {
@@ -38,6 +39,22 @@ pub fn save_settings(app: &tauri::AppHandle, settings: &AppSettings) -> Result<(
 
 pub fn load_settings(app: &tauri::AppHandle) -> AppSettings {
     app_data_file(app, SETTINGS_FILE)
+        .ok()
+        .filter(|path| path.exists())
+        .and_then(|path| std::fs::read_to_string(path).ok())
+        .and_then(|json| serde_json::from_str(&json).ok())
+        .unwrap_or_default()
+}
+
+pub fn save_palettes(app: &tauri::AppHandle, palettes: &[Palette]) -> Result<(), String> {
+    let path = app_data_file(app, PALETTES_FILE)?;
+    let json = serde_json::to_string_pretty(palettes)
+        .map_err(|e| format!("Failed to serialize palettes: {}", e))?;
+    std::fs::write(&path, json).map_err(|e| format!("Failed to write palettes file: {}", e))
+}
+
+pub fn load_palettes(app: &tauri::AppHandle) -> Vec<Palette> {
+    app_data_file(app, PALETTES_FILE)
         .ok()
         .filter(|path| path.exists())
         .and_then(|path| std::fs::read_to_string(path).ok())

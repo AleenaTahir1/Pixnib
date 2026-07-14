@@ -8,6 +8,7 @@ import { CodeSnippets } from "./components/CodeSnippets";
 import { ContrastChecker } from "./components/ContrastChecker";
 import { ShadeStrip } from "./components/ShadeStrip";
 import { Settings } from "./components/Settings";
+import { Palettes } from "./components/Palettes";
 import { UpdatePrompt } from "./components/UpdatePrompt";
 import { useColorHistory } from "./hooks/useColorHistory";
 import { ColorInfo, ColorEntry, ColorFormat } from "./types/color";
@@ -25,6 +26,7 @@ function App() {
   const [isMaximized, setIsMaximized] = useState(false);
   const [shortcutLabel, setShortcutLabel] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [palettesOpen, setPalettesOpen] = useState(false);
 
   const handleFormatChange = useCallback((f: ColorFormat) => {
     setFormat(f);
@@ -119,6 +121,18 @@ function App() {
 
         {/* Right: Window Controls */}
         <div data-window-controls className="flex items-center gap-0.5">
+          <button
+            onClick={(e) => { e.stopPropagation(); setPalettesOpen(true); }}
+            title="Palettes"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3a9 9 0 100 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.39-.61-.39-1 0-.83.67-1.5 1.5-1.5H16a5 5 0 005-5c0-4.42-4.03-8-9-8z" />
+              <circle cx="7.5" cy="10.5" r="1" fill="currentColor" stroke="none" />
+              <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
+              <circle cx="16.5" cy="10.5" r="1" fill="currentColor" stroke="none" />
+            </svg>
+          </button>
           <button
             onClick={(e) => { e.stopPropagation(); setSettingsOpen(true); }}
             title="Settings"
@@ -256,6 +270,13 @@ function App() {
         defaultFormat={format}
         onDefaultFormatChange={handleFormatChange}
         onShortcutChange={setShortcutLabel}
+      />
+
+      {/* Palettes */}
+      <Palettes
+        open={palettesOpen}
+        onClose={() => setPalettesOpen(false)}
+        current={displayColor?.hex ?? null}
       />
 
       {/* Update prompt */}

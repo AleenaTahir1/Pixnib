@@ -61,6 +61,13 @@ pub struct ColorEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Palette {
+    pub id: String,
+    pub name: String,
+    pub colors: Vec<String>, // hex values
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoupeData {
     pub colors: Vec<String>, // grid×grid hex values, row-major
     pub hex: String,         // center pixel
@@ -143,6 +150,16 @@ async fn save_color_history(app: tauri::AppHandle, colors: Vec<ColorEntry>) -> R
 #[tauri::command]
 async fn load_color_history(app: tauri::AppHandle) -> Result<Vec<ColorEntry>, String> {
     storage::load_color_history(&app).await
+}
+
+#[tauri::command]
+async fn save_palettes(app: tauri::AppHandle, palettes: Vec<Palette>) -> Result<(), String> {
+    storage::save_palettes(&app, &palettes)
+}
+
+#[tauri::command]
+async fn load_palettes(app: tauri::AppHandle) -> Result<Vec<Palette>, String> {
+    Ok(storage::load_palettes(&app))
 }
 
 #[tauri::command]
@@ -401,6 +418,8 @@ pub fn run() {
             capture_loupe,
             save_color_history,
             load_color_history,
+            save_palettes,
+            load_palettes,
             start_pick_mode,
             stop_pick_mode,
             is_pick_mode_active,

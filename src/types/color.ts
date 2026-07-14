@@ -13,6 +13,12 @@ export interface ColorEntry {
   label?: string;
 }
 
+export interface Palette {
+  id: string;
+  name: string;
+  colors: string[]; // hex values
+}
+
 export interface LoupeData {
   colors: string[]; // grid×grid hex values, row-major
   hex: string; // center pixel
