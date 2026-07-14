@@ -1,6 +1,6 @@
 [package]
 name = "pixnib"
-version = "0.1.3"
+version = "0.1.4"
 description = "Screen Color Picker"
 authors = ["Pixnib"]
 edition = "2021"
