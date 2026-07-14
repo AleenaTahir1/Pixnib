@@ -35,11 +35,32 @@
   box-sizing: border-box;
 }
 
-body {
-  height: 100vh;
+html {
   overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Pin the app so two-finger / touchpad panning can't drift the whole window
+   diagonally. Only explicit scroll containers scroll, and only vertically. */
+body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
   background: var(--bg-base);
   color: var(--text-primary);
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Vertical-only scroll regions */
+.scroll-y {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 /* Scrollbar */

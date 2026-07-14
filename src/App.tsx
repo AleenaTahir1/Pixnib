@@ -17,7 +17,11 @@ import { formatColor, getContrastColor } from "./utils/colorConvert";
 const appWindow = getCurrentWindow();
 
 function App() {
-  const [displayColor, setDisplayColor] = useState<{ hex: string; rgb: [number, number, number] } | null>(null);
+  type Swatch = { hex: string; rgb: [number, number, number] };
+  const [displayColor, setDisplayColor] = useState<Swatch | null>(null);
+  // The color actually picked; shades are derived from this and it stays
+  // restorable even after you preview a shade.
+  const [originalColor, setOriginalColor] = useState<Swatch | null>(null);
   const [format, setFormat] = useState<ColorFormat>(
     () => (localStorage.getItem("pixnib-default-format") as ColorFormat) || "hex"
   );
@@ -46,6 +50,7 @@ function App() {
     const unlistenPicked = listen<ColorInfo>("color-picked", async (event) => {
       const color = event.payload;
       setDisplayColor({ hex: color.hex, rgb: color.rgb });
+      setOriginalColor({ hex: color.hex, rgb: color.rgb });
       await addColor(color);
 
       // Auto-copy to clipboard
@@ -93,7 +98,20 @@ function App() {
 
   const handleSelectFromHistory = useCallback((color: ColorEntry) => {
     setDisplayColor({ hex: color.hex, rgb: color.rgb });
+    setOriginalColor({ hex: color.hex, rgb: color.rgb });
   }, []);
+
+  // Preview a generated shade as the current color without losing the original
+  const handleApplyShade = useCallback(async (hex: string, rgb: [number, number, number]) => {
+    setDisplayColor({ hex, rgb });
+    await writeText(hex);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
+
+  const handleRestoreOriginal = useCallback(() => {
+    if (originalColor) setDisplayColor(originalColor);
+  }, [originalColor]);
 
   const handleCopyFormat = useCallback(async (f: ColorFormat) => {
     if (displayColor) {
@@ -186,7 +204,7 @@ function App() {
       </header>
 
       {/* Main */}
-      <main className="px-5 pb-5 space-y-3 flex-1 overflow-y-auto">
+      <main className="px-5 pb-5 space-y-3 flex-1 scroll-y">
         {/* Pick actions */}
         <div className="flex gap-2">
           <button
@@ -257,7 +275,14 @@ function App() {
             <CodeSnippets rgb={displayColor.rgb} />
 
             {/* Shades & tints */}
-            <ShadeStrip rgb={displayColor.rgb} />
+            {originalColor && (
+              <ShadeStrip
+                original={originalColor.rgb}
+                activeHex={displayColor.hex}
+                onApply={handleApplyShade}
+                onRestore={handleRestoreOriginal}
+              />
+            )}
           </div>
         )}
 

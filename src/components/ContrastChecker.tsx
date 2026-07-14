@@ -41,18 +41,36 @@ export function ContrastChecker({ current, history }: ContrastCheckerProps) {
     ...history.slice(0, 8).map((c) => c.hex.toUpperCase()),
   ].filter((hex, i, arr) => arr.indexOf(hex) === i);
 
+  // Status pill: a check or cross makes pass/fail unmistakable and signals
+  // "this is a result, not a button".
   const badge = (label: string, pass: boolean) => (
     <span
       key={label}
-      className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-        pass
-          ? "bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent-border)]"
-          : "bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)]/25"
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+        pass ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "bg-[var(--danger-soft)] text-[var(--danger)]"
       }`}
     >
+      {pass ? (
+        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      )}
       {label}
     </span>
   );
+
+  // Plain-language verdict, so the ratio number means something at a glance.
+  const verdict = levels.aaaNormal
+    ? { text: "Excellent — readable for any text size", tone: "good" }
+    : levels.aaNormal
+      ? { text: "Good — fine for body text", tone: "good" }
+      : levels.aaLarge
+        ? { text: "OK for large text only (18pt+ or bold)", tone: "warn" }
+        : { text: "Low contrast — hard to read", tone: "bad" };
 
   const slot = (kind: "fg" | "bg", hex: string, label: string) => (
     <button
@@ -148,15 +166,38 @@ export function ContrastChecker({ current, history }: ContrastCheckerProps) {
             ))}
           </div>
 
-          {/* WCAG badges */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide mr-0.5">Normal</span>
-            {badge("AA", levels.aaNormal)}
-            {badge("AAA", levels.aaaNormal)}
-            <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide ml-2 mr-0.5">Large</span>
-            {badge("AA", levels.aaLarge)}
-            {badge("AAA", levels.aaaLarge)}
+          {/* Plain verdict */}
+          <div
+            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium ${
+              verdict.tone === "good"
+                ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                : verdict.tone === "warn"
+                  ? "bg-[var(--amber,#fcd34d)]/10 text-[#fcd34d]"
+                  : "bg-[var(--danger-soft)] text-[var(--danger)]"
+            }`}
+          >
+            {verdict.text}
           </div>
+
+          {/* WCAG badges (read-only status) */}
+          <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-center">
+            <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Normal text</span>
+            <div className="flex gap-1.5">
+              {badge("AA", levels.aaNormal)}
+              {badge("AAA", levels.aaaNormal)}
+            </div>
+            <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Large text</span>
+            <div className="flex gap-1.5">
+              {badge("AA", levels.aaLarge)}
+              {badge("AAA", levels.aaaLarge)}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
+            AA and AAA are WCAG readability levels (AAA is strictest). “Large” means 18pt+ or bold. These are
+            automatic results, not buttons.
+          </p>
         </div>
       )}
     </div>

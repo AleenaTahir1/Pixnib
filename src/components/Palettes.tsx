@@ -36,16 +36,17 @@ export function Palettes({ open, onClose, current }: PalettesProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg-base)] animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] shrink-0">
-        <h2 className="text-[14px] font-semibold">Palettes</h2>
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)] shrink-0">
         <button
           onClick={onClose}
-          className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
+          title="Back"
+          className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100 -ml-1"
         >
-          <svg width="12" height="12" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth={1.4}>
-            <path d="M1 1l8 8M9 1l-8 8" strokeLinecap="round" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
+        <h2 className="text-[14px] font-semibold">Palettes</h2>
       </div>
 
       {/* New palette */}
@@ -67,7 +68,7 @@ export function Palettes({ open, onClose, current }: PalettesProps) {
       </div>
 
       {/* Palette list */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div className="flex-1 scroll-y px-4 py-4 space-y-3">
         {palettes.length === 0 && (
           <div className="flex flex-col items-center justify-center h-40 text-center text-[var(--text-muted)]">
             <p className="text-[13px] font-medium text-[var(--text-secondary)]">No palettes yet</p>
