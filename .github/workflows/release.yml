@@ -125,10 +125,13 @@ jobs:
 
             ### Features
             - Pick any color from anywhere on screen with a global shortcut
-            - Auto-fallback shortcut if your preferred key combo is taken
-            - Copy colors as HEX, RGB, or HSL
-            - Persistent color history
-            - Clean dark theme UI
+            - Magnifier loupe that follows your cursor for pixel-perfect picking
+            - Drag-to-average area picking
+            - Copy as HEX, RGB, HSL, or code (CSS, Tailwind, SwiftUI, Flutter)
+            - Shades & tints and a WCAG contrast checker
+            - Named palettes with CSS / SCSS / JSON export
+            - Settings: shortcut, default format, launch-at-startup
+            - Persistent color history and a clean dark theme
             - Auto-updates — Pixnib politely offers new versions as they ship
           releaseDraft: false
           prerelease: false

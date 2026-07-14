@@ -39,10 +39,18 @@ No switching apps. No screenshots. No color conversion tools. Just point and pic
 ## Features
 
 - **Pick from anywhere** — Not limited to browsers or specific apps. Any pixel on your screen is fair game.
+- **Magnifier loupe** — A zoomed pixel grid follows your cursor while picking, so you land on the exact pixel.
+- **Average an area** — Drag a rectangle to get the average color of a region — great for noisy images and photos.
 - **Instant hotkey** — Press `Win+Shift+C` from any app, anytime
 - **Multiple formats** — Copy as HEX, RGB, or HSL with one click
+- **Copy as code** — Grab the color as a CSS variable, Tailwind class, SwiftUI or Flutter `Color`.
+- **Shades & tints** — See a full lightness scale of any color; click a step to copy it.
+- **Contrast checker** — WCAG contrast ratio with AA/AAA pass badges for any text/background pair.
+- **Named palettes** — Collect colors into palettes and export them as CSS, SCSS, or JSON.
 - **Color history** — All picked colors are saved and browsable
 - **Auto-copy** — Color values are copied to clipboard automatically
+- **Settings** — Choose your shortcut, default copy format, and launch-at-startup.
+- **Auto-updates** — Pixnib politely offers new versions as they ship.
 - **System tray** — Runs quietly in the background, always ready
 - **Dark theme** — Clean, minimal UI that stays out of your way
 - **Hotkey fallback** — If `Win+Shift+C` is taken by another app, Pixnib automatically registers the next available shortcut (`Ctrl+Shift+C`, `Win+Shift+P`, …) and shows you which one is active
