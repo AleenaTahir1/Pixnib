@@ -98,7 +98,26 @@
   .nav-btn.solid:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(94, 234, 212, 0.35); }
 
   /* ---------- hero ---------- */
-  header { position: relative; padding: 84px 0 40px; text-align: center; }
+  header { position: relative; padding: 84px 0 40px; text-align: center; overflow: hidden; }
+
+  .hero-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; pointer-events: none;
+    opacity: 0.85;
+  }
+  .hero-fade {
+    position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg,
+      rgba(9,9,11,0.25) 0%,
+      rgba(9,9,11,0.05) 35%,
+      rgba(9,9,11,0.25) 70%,
+      var(--bg-base) 97%);
+  }
+  header .wrap { position: relative; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-video { display: none; }
+  }
 
   .hero-glow {
     position: absolute; inset: -180px 0 auto; height: 480px;
@@ -399,6 +418,8 @@
 </nav>
 
 <header>
+  <video class="hero-video" autoplay muted loop playsinline preload="auto" src="assets/ink.mp4"></video>
+  <div class="hero-fade"></div>
   <div class="hero-glow"></div>
   <div class="wrap">
     <div class="mascot" aria-hidden="true">
