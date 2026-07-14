@@ -1,6 +1,6 @@
 {
   "name": "pixnib",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Screen Color Picker - Pick colors from anywhere on screen",
   "license": "MIT",
   "type": "module",
