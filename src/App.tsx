@@ -10,6 +10,7 @@ import { ShadeStrip } from "./components/ShadeStrip";
 import { Settings } from "./components/Settings";
 import { Palettes } from "./components/Palettes";
 import { Themes } from "./components/Themes";
+import { Onboarding } from "./components/Onboarding";
 import { UpdatePrompt } from "./components/UpdatePrompt";
 import { useColorHistory } from "./hooks/useColorHistory";
 import { ColorInfo, ColorEntry, ColorFormat } from "./types/color";
@@ -33,6 +34,21 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [palettesOpen, setPalettesOpen] = useState(false);
   const [themesOpen, setThemesOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("pixnib-onboarded")
+  );
+
+  const finishOnboarding = useCallback(() => {
+    localStorage.setItem("pixnib-onboarded", "1");
+    setShowOnboarding(false);
+  }, []);
+
+  const replayOnboarding = useCallback(() => {
+    setSettingsOpen(false);
+    setPalettesOpen(false);
+    setThemesOpen(false);
+    setShowOnboarding(true);
+  }, []);
   const [theme, setTheme] = useState<"dark" | "light">(
     () => (localStorage.getItem("pixnib-theme") === "light" ? "light" : "dark")
   );
@@ -163,6 +179,7 @@ function App() {
         <div data-window-controls className="flex items-center gap-0.5">
           {/* Curated themes */}
           <button
+            data-tour="themes"
             onClick={(e) => { e.stopPropagation(); setThemesOpen(true); }}
             title="Theme palettes"
             className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
@@ -175,6 +192,7 @@ function App() {
           </button>
           {/* My palettes */}
           <button
+            data-tour="palettes"
             onClick={(e) => { e.stopPropagation(); setPalettesOpen(true); }}
             title="My palettes"
             className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
@@ -188,6 +206,7 @@ function App() {
           </button>
           {/* Theme toggle */}
           <button
+            data-tour="theme"
             onClick={(e) => { e.stopPropagation(); toggleTheme(); }}
             title={theme === "dark" ? "Switch to light" : "Switch to dark"}
             className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
@@ -205,6 +224,7 @@ function App() {
           </button>
           {/* Settings */}
           <button
+            data-tour="settings"
             onClick={(e) => { e.stopPropagation(); setSettingsOpen(true); }}
             title="Settings"
             className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
@@ -255,6 +275,7 @@ function App() {
         {/* Pick actions */}
         <div className="flex gap-2">
           <button
+            data-tour="pick"
             onClick={handlePickColor}
             className="flex-1 py-3.5 bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--accent-border)] rounded-xl font-medium text-[15px] transition-all duration-200 flex items-center justify-center gap-2.5 group active:scale-[0.98]"
           >
@@ -266,6 +287,7 @@ function App() {
             )}
           </button>
           <button
+            data-tour="area"
             onClick={handlePickArea}
             title="Average a region"
             className="px-3.5 bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--accent-border)] rounded-xl transition-all duration-200 flex items-center justify-center active:scale-[0.98] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -362,6 +384,7 @@ function App() {
         defaultFormat={format}
         onDefaultFormatChange={handleFormatChange}
         onShortcutChange={setShortcutLabel}
+        onReplayTour={replayOnboarding}
       />
 
       {/* Palettes */}
@@ -373,6 +396,9 @@ function App() {
 
       {/* Curated theme palettes */}
       <Themes open={themesOpen} onClose={() => setThemesOpen(false)} />
+
+      {/* First-run guided tour */}
+      <Onboarding run={showOnboarding} onDone={finishOnboarding} />
 
       {/* Update prompt */}
       <UpdatePrompt />

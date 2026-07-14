@@ -9,6 +9,7 @@ interface SettingsProps {
   defaultFormat: ColorFormat;
   onDefaultFormatChange: (f: ColorFormat) => void;
   onShortcutChange: (label: string) => void;
+  onReplayTour: () => void;
 }
 
 const COPY_FORMATS: ColorFormat[] = ["hex", "rgb", "hsl"];
@@ -20,6 +21,7 @@ export function Settings({
   defaultFormat,
   onDefaultFormatChange,
   onShortcutChange,
+  onReplayTour,
 }: SettingsProps) {
   const [options, setOptions] = useState<string[]>([]);
   const [active, setActive] = useState("");
@@ -136,6 +138,20 @@ export function Settings({
                 autostart ? "translate-x-[18px]" : ""
               }`}
             />
+          </button>
+        </section>
+
+        {/* Replay tour */}
+        <section className="flex items-center justify-between pt-1 border-t border-[var(--border)]">
+          <div>
+            <div className="text-[12px] font-medium text-[var(--text-secondary)]">Show the intro tour</div>
+            <p className="text-[11px] text-[var(--text-muted)]">Walk through what each part does again.</p>
+          </div>
+          <button
+            onClick={onReplayTour}
+            className="px-3 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)] transition-colors duration-100 shrink-0"
+          >
+            Replay
           </button>
         </section>
 
