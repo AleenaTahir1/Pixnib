@@ -61,11 +61,47 @@ pub struct ColorEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ZoomPreviewData {
-    pub image_data: String, // Base64 encoded PNG
-    pub center_color: ColorInfo,
-    pub width: u32,
-    pub height: u32,
+pub struct LoupeData {
+    pub colors: Vec<String>, // grid×grid hex values, row-major
+    pub hex: String,         // center pixel
+    pub x: i32,
+    pub y: i32,
+}
+
+/// Put the app into pick mode: hide the main window, show the loupe,
+/// swap the cursor and notify the frontend.
+fn enter_pick_mode(app: &tauri::AppHandle) {
+    PICK_MODE_ACTIVE.store(true, Ordering::SeqCst);
+    let _ = app.emit("pick-mode-started", ());
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.hide();
+    }
+    if let Some(loupe) = app.get_webview_window("loupe") {
+        let _ = loupe.show();
+    }
+    color_picker::set_pick_cursor();
+}
+
+/// Leave pick mode, restoring the cursor and windows. Emits `color-picked`
+/// when a color was captured, `pick-mode-stopped` otherwise.
+fn exit_pick_mode(app: &tauri::AppHandle, picked: Option<ColorInfo>) {
+    PICK_MODE_ACTIVE.store(false, Ordering::SeqCst);
+    color_picker::restore_default_cursor();
+    if let Some(loupe) = app.get_webview_window("loupe") {
+        let _ = loupe.hide();
+    }
+    match picked {
+        Some(color) => {
+            let _ = app.emit("color-picked", color);
+        }
+        None => {
+            let _ = app.emit("pick-mode-stopped", ());
+        }
+    }
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
 }
 
 #[tauri::command]
@@ -74,8 +110,29 @@ fn get_color_at_cursor() -> Result<ColorInfo, String> {
 }
 
 #[tauri::command]
-fn capture_zoom_preview(size: u32) -> Result<ZoomPreviewData, String> {
-    color_picker::capture_zoom_preview(size)
+fn capture_loupe(app: tauri::AppHandle, grid: u32) -> Result<LoupeData, String> {
+    let data = color_picker::capture_loupe_grid(grid)?;
+
+    // Follow the cursor, flipping to the other side near screen edges
+    if let Some(loupe) = app.get_webview_window("loupe") {
+        const GAP: i32 = 24;
+        let size = loupe
+            .outer_size()
+            .unwrap_or_else(|_| tauri::PhysicalSize::new(160, 190));
+        let (mut nx, mut ny) = (data.x + GAP, data.y + GAP);
+        if let Ok(Some(monitor)) = app.monitor_from_point(data.x as f64, data.y as f64) {
+            let (mpos, msize) = (monitor.position(), monitor.size());
+            if nx + size.width as i32 > mpos.x + msize.width as i32 {
+                nx = data.x - GAP - size.width as i32;
+            }
+            if ny + size.height as i32 > mpos.y + msize.height as i32 {
+                ny = data.y - GAP - size.height as i32;
+            }
+        }
+        let _ = loupe.set_position(tauri::PhysicalPosition::new(nx, ny));
+    }
+
+    Ok(data)
 }
 
 #[tauri::command]
@@ -90,38 +147,13 @@ async fn load_color_history(app: tauri::AppHandle) -> Result<Vec<ColorEntry>, St
 
 #[tauri::command]
 fn start_pick_mode(app: tauri::AppHandle) -> Result<(), String> {
-    PICK_MODE_ACTIVE.store(true, Ordering::SeqCst);
-
-    // Hide the main window so user can see the screen
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.hide();
-    }
-
-    // Set custom cursor
-    color_picker::set_pick_cursor();
-
-    // Emit event to frontend
-    let _ = app.emit("pick-mode-started", ());
-
+    enter_pick_mode(&app);
     Ok(())
 }
 
 #[tauri::command]
 fn stop_pick_mode(app: tauri::AppHandle) -> Result<(), String> {
-    PICK_MODE_ACTIVE.store(false, Ordering::SeqCst);
-
-    // Restore default cursor
-    color_picker::restore_default_cursor();
-
-    // Show the main window
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.show();
-        let _ = window.set_focus();
-    }
-
-    // Emit event to frontend
-    let _ = app.emit("pick-mode-stopped", ());
-
+    exit_pick_mode(&app, None);
     Ok(())
 }
 
@@ -141,24 +173,8 @@ fn get_active_shortcut() -> String {
 
 #[tauri::command]
 fn pick_color_now(app: tauri::AppHandle) -> Result<ColorInfo, String> {
-    // Get the color at current cursor position
     let color = color_picker::get_color_at_cursor()?;
-
-    // Stop pick mode
-    PICK_MODE_ACTIVE.store(false, Ordering::SeqCst);
-
-    // Restore default cursor
-    color_picker::restore_default_cursor();
-
-    // Show the main window
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.show();
-        let _ = window.set_focus();
-    }
-
-    // Emit the picked color
-    let _ = app.emit("color-picked", color.clone());
-
+    exit_pick_mode(&app, Some(color.clone()));
     Ok(color)
 }
 
@@ -187,35 +203,17 @@ pub fn run() {
                         if PICK_MODE_ACTIVE.load(Ordering::SeqCst) {
                             // If already in pick mode, pick the color
                             if let Ok(color) = color_picker::get_color_at_cursor() {
-                                PICK_MODE_ACTIVE.store(false, Ordering::SeqCst);
-                                color_picker::restore_default_cursor();
-                                let _ = app.emit("color-picked", color);
-                                if let Some(window) = app.get_webview_window("main") {
-                                    let _ = window.show();
-                                    let _ = window.set_focus();
-                                }
+                                exit_pick_mode(app, Some(color));
                             }
                         } else {
-                            // Start pick mode
-                            PICK_MODE_ACTIVE.store(true, Ordering::SeqCst);
-                            let _ = app.emit("pick-mode-started", ());
-                            if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.hide();
-                            }
-                            color_picker::set_pick_cursor();
+                            enter_pick_mode(app);
                         }
                     }
 
                     // Escape to cancel pick mode
                     let escape_shortcut = Shortcut::new(None, Code::Escape);
                     if shortcut == &escape_shortcut && PICK_MODE_ACTIVE.load(Ordering::SeqCst) {
-                        PICK_MODE_ACTIVE.store(false, Ordering::SeqCst);
-                        color_picker::restore_default_cursor();
-                        let _ = app.emit("pick-mode-stopped", ());
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
+                        exit_pick_mode(app, None);
                     }
                 })
                 .build(),
@@ -254,6 +252,25 @@ pub fn run() {
                 Ok(_) => println!("Escape shortcut registered"),
                 Err(e) => eprintln!("Failed to register Escape shortcut: {e}"),
             }
+
+            // Frameless always-on-top loupe window; hidden until pick mode
+            let loupe = tauri::WebviewWindowBuilder::new(
+                app,
+                "loupe",
+                tauri::WebviewUrl::App("index.html".into()),
+            )
+            .title("Pixnib Loupe")
+            .inner_size(148.0, 178.0)
+            .decorations(false)
+            .resizable(false)
+            .always_on_top(true)
+            .skip_taskbar(true)
+            .visible(false)
+            .focused(false)
+            .shadow(false)
+            .transparent(true)
+            .build()?;
+            let _ = loupe.set_ignore_cursor_events(true);
 
             // Setup system tray
             let tray_shortcut_text = if shortcut_label.is_empty() {
@@ -296,13 +313,7 @@ pub fn run() {
                         app.exit(0);
                     }
                     "pick" => {
-                        PICK_MODE_ACTIVE.store(true, Ordering::SeqCst);
-                        let _ = app.emit("pick-mode-started", ());
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.hide();
-                        }
-                        // Set custom cursor
-                        color_picker::set_pick_cursor();
+                        enter_pick_mode(app);
                     }
                     "show" => {
                         if let Some(window) = app.get_webview_window("main") {
@@ -332,7 +343,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_color_at_cursor,
-            capture_zoom_preview,
+            capture_loupe,
             save_color_history,
             load_color_history,
             start_pick_mode,

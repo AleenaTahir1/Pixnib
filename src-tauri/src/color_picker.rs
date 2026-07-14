@@ -1,6 +1,4 @@
-use crate::{ColorInfo, ZoomPreviewData};
-use base64::{engine::general_purpose::STANDARD, Engine};
-use std::io::Cursor;
+use crate::{ColorInfo, LoupeData};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 static CURSOR_CHANGED: AtomicBool = AtomicBool::new(false);
@@ -9,8 +7,9 @@ static CURSOR_CHANGED: AtomicBool = AtomicBool::new(false);
 use windows::Win32::{
     Foundation::{COLORREF, POINT},
     Graphics::Gdi::{
-        CreateBitmap, CreateDIBSection, DeleteObject, GetDC, GetPixel, ReleaseDC, BITMAPINFO,
-        BITMAPINFOHEADER, CLR_INVALID, DIB_RGB_COLORS,
+        BitBlt, CreateBitmap, CreateCompatibleDC, CreateDIBSection, DeleteDC, DeleteObject, GetDC,
+        GetPixel, ReleaseDC, SelectObject, BITMAPINFO, BITMAPINFOHEADER, CLR_INVALID,
+        DIB_RGB_COLORS, SRCCOPY,
     },
     UI::WindowsAndMessaging::{
         CreateIconIndirect, GetCursorPos, SetSystemCursor, SystemParametersInfoW, HCURSOR,
@@ -192,79 +191,78 @@ pub fn restore_default_cursor_force() {
     CURSOR_CHANGED.store(false, Ordering::SeqCst);
 }
 
-/// Capture a zoom preview around the cursor
+/// Capture a small pixel grid centered on the cursor for the loupe.
+/// Uses a single BitBlt of grid×grid pixels, so it is fast enough to poll.
 #[cfg(windows)]
-pub fn capture_zoom_preview(size: u32) -> Result<ZoomPreviewData, String> {
-    use xcap::Monitor;
+pub fn capture_loupe_grid(grid: u32) -> Result<LoupeData, String> {
+    use std::ffi::c_void;
 
     let (cursor_x, cursor_y) = get_cursor_position()?;
-    let (r, g, b) = get_pixel_color(cursor_x, cursor_y)?;
+    let half = (grid / 2) as i32;
 
-    // Find the monitor containing the cursor
-    let monitors = Monitor::all().map_err(|e| format!("Failed to get monitors: {}", e))?;
+    unsafe {
+        let screen_dc = GetDC(None);
+        if screen_dc.is_invalid() {
+            return Err("Failed to get screen device context".to_string());
+        }
+        let mem_dc = CreateCompatibleDC(screen_dc);
 
-    let monitor = monitors
-        .into_iter()
-        .find(|m| {
-            let x = m.x();
-            let y = m.y();
-            let w = m.width() as i32;
-            let h = m.height() as i32;
-            cursor_x >= x && cursor_x < x + w && cursor_y >= y && cursor_y < y + h
-        })
-        .ok_or_else(|| "Could not find monitor containing cursor".to_string())?;
+        let mut bmi: BITMAPINFO = std::mem::zeroed();
+        bmi.bmiHeader.biSize = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
+        bmi.bmiHeader.biWidth = grid as i32;
+        bmi.bmiHeader.biHeight = -(grid as i32); // negative = top-down
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 32;
+        bmi.bmiHeader.biCompression = 0; // BI_RGB
 
-    // Calculate capture region (centered on cursor)
-    let half_size = (size / 2) as i32;
-    let monitor_x = monitor.x();
-    let monitor_y = monitor.y();
-    let monitor_w = monitor.width() as i32;
-    let monitor_h = monitor.height() as i32;
+        let mut bits_ptr: *mut c_void = std::ptr::null_mut();
+        let bmp = CreateDIBSection(screen_dc, &bmi, DIB_RGB_COLORS, &mut bits_ptr, None, 0)
+            .map_err(|e| {
+                let _ = DeleteDC(mem_dc);
+                ReleaseDC(None, screen_dc);
+                format!("Failed to create DIB section: {}", e)
+            })?;
 
-    // Convert cursor position to monitor-relative coordinates
-    let rel_x = cursor_x - monitor_x;
-    let rel_y = cursor_y - monitor_y;
+        let old_bmp = SelectObject(mem_dc, bmp);
+        let blit = BitBlt(
+            mem_dc,
+            0,
+            0,
+            grid as i32,
+            grid as i32,
+            screen_dc,
+            cursor_x - half,
+            cursor_y - half,
+            SRCCOPY,
+        );
 
-    // Calculate capture bounds (clamped to monitor)
-    let capture_x = (rel_x - half_size).max(0);
-    let capture_y = (rel_y - half_size).max(0);
-    let capture_w = size.min((monitor_w - capture_x) as u32);
-    let capture_h = size.min((monitor_h - capture_y) as u32);
+        let mut colors = Vec::with_capacity((grid * grid) as usize);
+        if blit.is_ok() && !bits_ptr.is_null() {
+            let px = std::slice::from_raw_parts(bits_ptr as *const u8, (grid * grid * 4) as usize);
+            for i in 0..(grid * grid) as usize {
+                // DIB sections are BGRA
+                let (b, g, r) = (px[i * 4], px[i * 4 + 1], px[i * 4 + 2]);
+                colors.push(format!("#{:02X}{:02X}{:02X}", r, g, b));
+            }
+        }
 
-    // Capture the region
-    let image = monitor
-        .capture_image()
-        .map_err(|e| format!("Failed to capture screen: {}", e))?;
+        SelectObject(mem_dc, old_bmp);
+        let _ = DeleteObject(bmp);
+        let _ = DeleteDC(mem_dc);
+        ReleaseDC(None, screen_dc);
 
-    // Crop to the region we want
-    let cropped = image::imageops::crop_imm(
-        &image,
-        capture_x as u32,
-        capture_y as u32,
-        capture_w,
-        capture_h,
-    )
-    .to_image();
+        if colors.is_empty() {
+            return Err("Failed to capture loupe region".to_string());
+        }
 
-    // Encode to PNG and then base64
-    let mut png_data = Cursor::new(Vec::new());
-    cropped
-        .write_to(&mut png_data, image::ImageFormat::Png)
-        .map_err(|e| format!("Failed to encode image: {}", e))?;
-
-    let base64_image = STANDARD.encode(png_data.into_inner());
-
-    Ok(ZoomPreviewData {
-        image_data: base64_image,
-        center_color: ColorInfo {
-            hex: format!("#{:02X}{:02X}{:02X}", r, g, b),
-            rgb: [r, g, b],
+        let center = colors[(half as u32 * grid + half as u32) as usize].clone();
+        Ok(LoupeData {
+            colors,
+            hex: center,
             x: cursor_x,
             y: cursor_y,
-        },
-        width: capture_w,
-        height: capture_h,
-    })
+        })
+    }
 }
 
 // Non-Windows fallback implementations
@@ -274,8 +272,8 @@ pub fn get_color_at_cursor() -> Result<ColorInfo, String> {
 }
 
 #[cfg(not(windows))]
-pub fn capture_zoom_preview(_size: u32) -> Result<ZoomPreviewData, String> {
-    Err("Zoom preview is only supported on Windows".to_string())
+pub fn capture_loupe_grid(_grid: u32) -> Result<LoupeData, String> {
+    Err("Loupe capture is only supported on Windows".to_string())
 }
 
 #[cfg(not(windows))]

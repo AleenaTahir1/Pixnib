@@ -13,11 +13,11 @@ export interface ColorEntry {
   label?: string;
 }
 
-export interface ZoomPreviewData {
-  image_data: string; // Base64 encoded PNG
-  center_color: ColorInfo;
-  width: number;
-  height: number;
+export interface LoupeData {
+  colors: string[]; // grid×grid hex values, row-major
+  hex: string; // center pixel
+  x: number;
+  y: number;
 }
 
 export type ColorFormat = "hex" | "rgb" | "rgba" | "hsl" | "css-var";
