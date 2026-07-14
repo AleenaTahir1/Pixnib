@@ -279,8 +279,8 @@ pub fn average_area_color(x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(u8, u8,
 
     let left = x1.min(x2);
     let top = y1.min(y2);
-    let w = (x1 - x2).abs().max(1).min(4096);
-    let h = (y1 - y2).abs().max(1).min(4096);
+    let w = (x1 - x2).abs().clamp(1, 4096);
+    let h = (y1 - y2).abs().clamp(1, 4096);
 
     unsafe {
         let screen_dc = GetDC(None);
@@ -325,7 +325,7 @@ pub fn average_area_color(x1: i32, y1: i32, x2: i32, y2: i32) -> Result<(u8, u8,
         let _ = DeleteDC(mem_dc);
         ReleaseDC(None, screen_dc);
 
-        if !blit.is_ok() {
+        if blit.is_err() {
             return Err("Failed to capture area".to_string());
         }
 
