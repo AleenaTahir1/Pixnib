@@ -54,7 +54,7 @@ export function ColorHistory({
         </button>
       </div>
 
-      <div className="grid grid-cols-6 gap-2">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(42px,1fr))] gap-2">
         {colors.map((color) => (
           <ColorCard
             key={color.id}

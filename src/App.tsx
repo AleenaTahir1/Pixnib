@@ -83,7 +83,7 @@ function App() {
   }, [displayColor]);
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] flex flex-col">
+    <div className="h-screen overflow-hidden bg-[var(--bg-base)] text-[var(--text-primary)] flex flex-col">
       {/* Custom Title Bar */}
       <header
         className="flex items-center justify-between px-4 pt-3 pb-2 select-none shrink-0"
@@ -180,8 +180,8 @@ function App() {
                   onClick={() => handleCopyFormat(f)}
                   className="w-full px-3 py-2 flex items-center justify-between text-[12px] hover:bg-[var(--bg-elevated)] transition-colors duration-100 first:rounded-t-lg last:rounded-b-lg"
                 >
-                  <span className="text-[var(--text-muted)] font-medium uppercase text-[10px] w-8">{f}</span>
-                  <span className="font-mono text-[var(--text-primary)]">
+                  <span className="text-[var(--text-muted)] font-medium uppercase text-[10px] w-8 shrink-0 text-left">{f}</span>
+                  <span className="font-mono text-[var(--text-primary)] flex-1 min-w-0 truncate text-center">
                     {formatColor(displayColor.rgb, f)}
                   </span>
                   {copiedFormat === f ? (
