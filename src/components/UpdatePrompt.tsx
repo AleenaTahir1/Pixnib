@@ -89,7 +89,7 @@ export function UpdatePrompt() {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={handleUpdate}
-                className="px-3.5 py-1.5 rounded-lg bg-[var(--accent)] text-[#06302a] text-[12px] font-semibold hover:opacity-90 transition-opacity duration-100 active:scale-[0.97]"
+                className="px-3.5 py-1.5 rounded-lg bg-[var(--accent)] text-[var(--on-accent)] text-[12px] font-semibold hover:opacity-90 transition-opacity duration-100 active:scale-[0.97]"
               >
                 {error ? "Try again" : "Update now"}
               </button>

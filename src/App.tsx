@@ -9,6 +9,7 @@ import { ContrastChecker } from "./components/ContrastChecker";
 import { ShadeStrip } from "./components/ShadeStrip";
 import { Settings } from "./components/Settings";
 import { Palettes } from "./components/Palettes";
+import { Themes } from "./components/Themes";
 import { UpdatePrompt } from "./components/UpdatePrompt";
 import { useColorHistory } from "./hooks/useColorHistory";
 import { ColorInfo, ColorEntry, ColorFormat } from "./types/color";
@@ -31,6 +32,19 @@ function App() {
   const [shortcutLabel, setShortcutLabel] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [palettesOpen, setPalettesOpen] = useState(false);
+  const [themesOpen, setThemesOpen] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">(
+    () => (localStorage.getItem("pixnib-theme") === "light" ? "light" : "dark")
+  );
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem("pixnib-theme", next);
+      return next;
+    });
+  }, []);
 
   const handleFormatChange = useCallback((f: ColorFormat) => {
     setFormat(f);
@@ -145,30 +159,63 @@ function App() {
           <h1 className="text-[16px] font-semibold tracking-tight">Pixnib</h1>
         </div>
 
-        {/* Right: Window Controls */}
+        {/* Right: app actions + window controls */}
         <div data-window-controls className="flex items-center gap-0.5">
+          {/* Curated themes */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setThemesOpen(true); }}
+            title="Theme palettes"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
+              <rect x="3" y="4" width="18" height="4" rx="1.2" />
+              <rect x="3" y="10" width="18" height="4" rx="1.2" />
+              <rect x="3" y="16" width="18" height="4" rx="1.2" />
+            </svg>
+          </button>
+          {/* My palettes */}
           <button
             onClick={(e) => { e.stopPropagation(); setPalettesOpen(true); }}
-            title="Palettes"
-            className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
+            title="My palettes"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 3a9 9 0 100 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.39-.61-.39-1 0-.83.67-1.5 1.5-1.5H16a5 5 0 005-5c0-4.42-4.03-8-9-8z" />
               <circle cx="7.5" cy="10.5" r="1" fill="currentColor" stroke="none" />
               <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
               <circle cx="16.5" cy="10.5" r="1" fill="currentColor" stroke="none" />
             </svg>
           </button>
+          {/* Theme toggle */}
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleTheme(); }}
+            title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+            className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
+          >
+            {theme === "dark" ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                <circle cx="12" cy="12" r="4" />
+                <path strokeLinecap="round" d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              </svg>
+            )}
+          </button>
+          {/* Settings */}
           <button
             onClick={(e) => { e.stopPropagation(); setSettingsOpen(true); }}
             title="Settings"
-            className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors duration-100 mr-1"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
               <circle cx="12" cy="12" r="3" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
             </svg>
           </button>
+          {/* Divider */}
+          <div className="w-px h-4 bg-[var(--border-hover)] mx-1" />
           <button
             onClick={(e) => { e.stopPropagation(); appWindow.minimize(); }}
             className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors duration-100"
@@ -323,6 +370,9 @@ function App() {
         onClose={() => setPalettesOpen(false)}
         current={displayColor?.hex ?? null}
       />
+
+      {/* Curated theme palettes */}
+      <Themes open={themesOpen} onClose={() => setThemesOpen(false)} />
 
       {/* Update prompt */}
       <UpdatePrompt />

@@ -78,7 +78,7 @@ export function Region() {
           className="absolute border-2 border-[var(--accent)] bg-[var(--accent)]/10 pointer-events-none"
           style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
         >
-          <span className="absolute -top-6 left-0 bg-[var(--accent)] text-[#06302a] text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded">
+          <span className="absolute -top-6 left-0 bg-[var(--accent)] text-[var(--on-accent)] text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded">
             {rect.width}×{rect.height}
           </span>
         </div>

@@ -50,7 +50,7 @@ export function ShadeStrip({ original, activeHex, onApply, onRestore }: ShadeStr
           }`}
           style={{ backgroundColor: originalHex }}
         >
-          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[var(--accent)] text-[#06302a] text-[8px] font-bold flex items-center justify-center">
+          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[var(--accent)] text-[var(--on-accent)] text-[8px] font-bold flex items-center justify-center">
             ★
           </span>
         </button>

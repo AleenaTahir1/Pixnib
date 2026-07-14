@@ -6,6 +6,10 @@ import { Loupe } from "./components/Loupe";
 import { Region } from "./components/Region";
 import "./index.css";
 
+// Apply the saved theme before first paint to avoid a flash
+document.documentElement.dataset.theme =
+  localStorage.getItem("pixnib-theme") === "light" ? "light" : "dark";
+
 // Auxiliary windows load the same bundle; route by window label
 const label = getCurrentWindow().label;
 

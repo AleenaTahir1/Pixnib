@@ -61,7 +61,7 @@ export function Palettes({ open, onClose, current }: PalettesProps) {
         <button
           onClick={handleCreate}
           disabled={!newName.trim()}
-          className="px-3.5 py-2 rounded-lg bg-[var(--accent)] text-[#06302a] text-[12px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity duration-100 shrink-0"
+          className="px-3.5 py-2 rounded-lg bg-[var(--accent)] text-[var(--on-accent)] text-[12px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity duration-100 shrink-0"
         >
           Create
         </button>
