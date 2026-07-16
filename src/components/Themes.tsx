@@ -121,6 +121,12 @@ export function Themes({ open, onClose }: ThemesProps) {
 
       {/* Palette cards — one per row, full width, footer always visible */}
       <div className="flex-1 scroll-y px-4 py-4 space-y-3">
+        {palettes.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-40 text-center text-[var(--text-muted)]">
+            <p className="text-[13px] font-medium text-[var(--text-secondary)]">No palettes here</p>
+            <p className="text-[11px] mt-1">Try a different mood or color count</p>
+          </div>
+        )}
         {shown.map((p, idx) => (
           <div key={`${p.name}-${idx}`} className="rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--bg-surface)]">
             {/* Horizontal color strip */}

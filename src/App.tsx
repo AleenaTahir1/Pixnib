@@ -428,6 +428,7 @@ function App() {
         open={palettesOpen}
         onClose={() => setPalettesOpen(false)}
         current={displayColor?.hex ?? null}
+        history={colors}
       />
 
       {/* Curated theme palettes */}
