@@ -34,6 +34,7 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [palettesOpen, setPalettesOpen] = useState(false);
   const [themesOpen, setThemesOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState<"values" | "code" | "shades" | "contrast">("values");
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("pixnib-onboarded")
   );
@@ -301,50 +302,84 @@ function App() {
 
         {/* Display Color */}
         {displayColor && (
-          <div className="animate-fade-in-up space-y-2">
+          <div className="animate-fade-in-up space-y-3">
             {/* Color Swatch */}
             <div
-              className="h-24 rounded-xl flex items-end p-3.5 relative overflow-hidden"
+              className="h-28 rounded-2xl flex items-end justify-between p-4 relative overflow-hidden"
               style={{ backgroundColor: displayColor.hex }}
             >
               <span
-                className="font-mono text-base font-medium"
+                className="font-mono text-lg font-semibold tracking-tight"
                 style={{ color: getContrastColor(displayColor.rgb) }}
               >
                 {displayColor.hex}
               </span>
+              <button
+                onClick={() => handleCopyFormat("hex")}
+                title="Copy hex"
+                className="opacity-70 hover:opacity-100 transition-opacity duration-100"
+                style={{ color: getContrastColor(displayColor.rgb) }}
+              >
+                {copiedFormat === "hex" ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+                    <rect x="9" y="9" width="11" height="11" rx="2" />
+                    <path d="M5 15V5a2 2 0 012-2h10" />
+                  </svg>
+                )}
+              </button>
             </div>
 
-            {/* All Format Values - each copyable */}
-            <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border)] divide-y divide-[var(--border)]">
-              {(["hex", "rgb", "hsl"] as ColorFormat[]).map((f) => (
+            {/* Segmented tabs keep the detail sections from crowding the view */}
+            <div className="flex bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg p-0.5 gap-0.5">
+              {(["values", "code", "shades", "contrast"] as const).map((t) => (
                 <button
-                  key={f}
-                  onClick={() => handleCopyFormat(f)}
-                  className="w-full px-3 py-2 flex items-center justify-between text-[12px] hover:bg-[var(--bg-elevated)] transition-colors duration-100 first:rounded-t-lg last:rounded-b-lg"
+                  key={t}
+                  onClick={() => setDetailTab(t)}
+                  className={`flex-1 py-1.5 rounded-md text-[11px] font-medium capitalize transition-colors duration-100 ${
+                    detailTab === t
+                      ? "bg-[var(--brand)] text-[var(--on-brand)]"
+                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  }`}
                 >
-                  <span className="text-[var(--text-muted)] font-medium uppercase text-[10px] w-8 shrink-0 text-left">{f}</span>
-                  <span className="font-mono text-[var(--text-primary)] flex-1 min-w-0 truncate text-center">
-                    {formatColor(displayColor.rgb, f)}
-                  </span>
-                  {copiedFormat === f ? (
-                    <svg className="w-3.5 h-3.5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-3.5 h-3.5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-                    </svg>
-                  )}
+                  {t}
                 </button>
               ))}
             </div>
 
-            {/* Dev code snippets */}
-            <CodeSnippets rgb={displayColor.rgb} />
+            {/* Tab panels */}
+            {detailTab === "values" && (
+              <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border)] divide-y divide-[var(--border)]">
+                {(["hex", "rgb", "hsl"] as ColorFormat[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => handleCopyFormat(f)}
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-[12px] hover:bg-[var(--bg-elevated)] transition-colors duration-100 first:rounded-t-xl last:rounded-b-xl"
+                  >
+                    <span className="text-[var(--text-muted)] font-medium uppercase text-[10px] w-8 shrink-0 text-left">{f}</span>
+                    <span className="font-mono text-[var(--text-primary)] flex-1 min-w-0 truncate text-center">
+                      {formatColor(displayColor.rgb, f)}
+                    </span>
+                    {copiedFormat === f ? (
+                      <svg className="w-3.5 h-3.5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-3.5 h-3.5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {/* Shades & tints */}
-            {originalColor && (
+            {detailTab === "code" && <CodeSnippets rgb={displayColor.rgb} />}
+
+            {detailTab === "shades" && originalColor && (
               <ShadeStrip
                 original={originalColor.rgb}
                 activeHex={displayColor.hex}
@@ -352,11 +387,12 @@ function App() {
                 onRestore={handleRestoreOriginal}
               />
             )}
+
+            {detailTab === "contrast" && (
+              <ContrastChecker current={displayColor.hex} history={colors} />
+            )}
           </div>
         )}
-
-        {/* Contrast checker */}
-        <ContrastChecker current={displayColor?.hex ?? null} history={colors} />
 
         {/* Color History */}
         <ColorHistory

@@ -157,6 +157,13 @@ Pixnib/
 
 ---
 
+## Credits
+
+The Theme palettes library bundles curated palettes from
+[nice-color-palettes](https://github.com/Experience-Monks/nice-color-palettes) and
+[dictionary-of-colour-combinations](https://github.com/mattdesl/dictionary-of-colour-combinations)
+(Sanzo Wada), both MIT. See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
 ## License
 
 Pixnib is open source under the [MIT License](LICENSE.txt). Use it, modify it, ship it — personal or commercial, no permission needed.
