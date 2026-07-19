@@ -104,6 +104,10 @@
     position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover; pointer-events: none;
     opacity: 0.85;
+    /* Scale up from the top-left so the bottom-right watermark overflows
+       past the hero's clipped edge and never shows. */
+    transform-origin: top left;
+    transform: scale(1.22);
   }
   .hero-fade {
     position: absolute; inset: 0; pointer-events: none;
